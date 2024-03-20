@@ -31,15 +31,15 @@ class MivoloPredictor(ImagePredictModel):
         *args,
         **kwargs,
     ):
-        detector_weights = f"{self.cache_path}/mivolo_imbd.pth.tar"
-        checkpoint = f"{self.cache_path}/yolov8x_person_face.pt"
+        checkpoint = f"{self.cache_path}/mivolo_imbd.pth.tar"
+        detector_weights = f"{self.cache_path}/yolov8x_person_face.pt"
         simple_download(
             url=public_oss_url(path="models/mivolo/mivolo_imbd.pth.tar"),
-            filepath=detector_weights,
+            filepath=checkpoint,
         )
         simple_download(
             url=public_oss_url(path="models/mivolo/yolov8x_person_face.pt"),
-            filepath=checkpoint,
+            filepath=detector_weights,
         )
 
         self.detector_model = Detector(detector_weights, device, verbose=verbose)
