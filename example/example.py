@@ -1,4 +1,4 @@
-from funmodel.mivolo.predictor import MivoloPredictor
+from funmodel.mivolo import MivoloPredictor
 from funmodel.utils.image.transform import url_to_cvimg
 
 
