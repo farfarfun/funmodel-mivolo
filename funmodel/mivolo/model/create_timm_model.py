@@ -12,7 +12,7 @@ import timm
 
 
 # register new models
-from funmodels.mivolo.model.mivolo_model import *  # noqa: F403, F401
+from funmodel.mivolo.model.mivolo_model import *  # noqa: F403, F401
 from timm.layers import set_layer_config
 from timm.models._factory import parse_model_name
 from timm.models._helpers import load_state_dict, remap_checkpoint

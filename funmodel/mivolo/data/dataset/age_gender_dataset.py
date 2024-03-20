@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Set
 import cv2
 import numpy as np
 import torch
-from fummodels.mivolo.data.dataset.reader_age_gender import ReaderAgeGender
+from funmodel.mivolo.data.dataset.reader_age_gender import ReaderAgeGender
 from PIL import Image
 from torchvision import transforms
 

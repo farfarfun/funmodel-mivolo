@@ -6,8 +6,8 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from funmodels.mivolo.data.data_reader import AnnotType, PictureInfo, get_all_files, read_csv_annotation_file
-from funmodels.mivolo.data.misc import IOU, class_letterbox
+from funmodel.mivolo.data.data_reader import AnnotType, PictureInfo, get_all_files, read_csv_annotation_file
+from funmodel.mivolo.data.misc import IOU, class_letterbox
 from timm.data.readers.reader import Reader
 from tqdm import tqdm
 

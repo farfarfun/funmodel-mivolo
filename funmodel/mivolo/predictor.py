@@ -4,9 +4,9 @@ from typing import Dict, Generator, List, Optional, Tuple
 import cv2
 import numpy as np
 import tqdm
-from fummodels.mivolo.model.mi_volo import MiVOLO
-from fummodels.mivolo.model.yolo_detector import Detector
-from fummodels.mivolo.structures import AGE_GENDER_TYPE, PersonAndFaceResult
+from funmodel.mivolo.model.mi_volo import MiVOLO
+from funmodel.mivolo.model.yolo_detector import Detector
+from funmodel.mivolo.structures import AGE_GENDER_TYPE, PersonAndFaceResult
 
 
 class Predictor:

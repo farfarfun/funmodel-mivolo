@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 import torch
-from funmodels.mivolo.data.misc import aggregate_votes_winsorized, assign_faces, box_iou
+from funmodel.mivolo.data.misc import aggregate_votes_winsorized, assign_faces, box_iou
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.plotting import Annotator, colors
 

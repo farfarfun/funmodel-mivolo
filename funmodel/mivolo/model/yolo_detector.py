@@ -4,7 +4,7 @@ from typing import Dict, Union
 import numpy as np
 import PIL
 import torch
-from funmodels.mivolo.structures import PersonAndFaceResult
+from funmodel.mivolo.structures import PersonAndFaceResult
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.engine.results import Results
 

@@ -3,9 +3,9 @@ from typing import Optional
 
 import numpy as np
 import torch
-from funmodels.mivolo.data.misc import prepare_classification_images
-from funmodels.mivolo.model.create_timm_model import create_model
-from funmodels.mivolo.structures import PersonAndFaceCrops, PersonAndFaceResult
+from funmodel.mivolo.data.misc import prepare_classification_images
+from funmodel.mivolo.model.create_timm_model import create_model
+from funmodel.mivolo.structures import PersonAndFaceCrops, PersonAndFaceResult
 from timm.data import resolve_data_config
 
 _logger = logging.getLogger("MiVOLO")

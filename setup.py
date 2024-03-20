@@ -1,7 +1,7 @@
 from funpypi import setup
 
 
-install_requires = ["funpypi","funmodels",
+install_requires = ["funpypi","funmodel",
 
 
 
@@ -16,7 +16,7 @@ install_requires = ["funpypi","funmodels",
 
 
 
-setup(name="funmodels-mivolo", 
+setup(name="funmodel-mivolo", 
 description="Layer MiVOLO for SOTA age and gender recognition",
 python_requires=">=3.8",
 install_requires=install_requires)
