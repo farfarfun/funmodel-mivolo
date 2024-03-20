@@ -3,7 +3,6 @@ from funpypi import setup
 
 install_requires = [
     "funpypi",
-    "funmodel",
     "huggingface_hub",
     "ultralytics==8.0.124",
     "timm==0.8.13.dev0",
