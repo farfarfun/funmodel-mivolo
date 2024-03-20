@@ -2,6 +2,7 @@ from funpypi import setup
 
 
 install_requires = [
+    "funmodel",
     "funpypi",
     "huggingface_hub",
     "ultralytics==8.0.124",

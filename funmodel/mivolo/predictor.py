@@ -1,68 +1,80 @@
-from collections import defaultdict
-from typing import Dict, Generator, List, Optional, Tuple
-
-import cv2
 import numpy as np
-import tqdm
+from fundrive.download import simple_download
+from fundrive.drives.oss import public_oss_url
+from funmodel.core.predict.image import ImagePredictModel
 from funmodel.mivolo.model.mi_volo import MiVOLO
 from funmodel.mivolo.model.yolo_detector import Detector
-from funmodel.mivolo.structures import AGE_GENDER_TYPE, PersonAndFaceResult
+from funmodel.mivolo.structures import PersonAndFaceResult
 
 
-class Predictor:
-    def __init__(self, config, verbose: bool = False):
-        self.detector = Detector(config.detector_weights, config.device, verbose=verbose)
+class MivoloPredictor(ImagePredictModel):
+    def __init__(
+        self,
+        with_persons=False,
+        disable_faces=False,
+        device="cpu",
+        verbose: bool = False,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(model_name="mivolo", *args, **kwargs)
+        self.detector_model = None
+        self.age_gender_model = None
+        self.load(with_persons, disable_faces, device, verbose)
+
+    def load(
+        self,
+        with_persons=False,
+        disable_faces=False,
+        device="cpu",
+        verbose: bool = False,
+        *args,
+        **kwargs,
+    ):
+        detector_weights = f"{self.cache_path}/mivolo_imbd.pth.tar"
+        checkpoint = f"{self.cache_path}/yolov8x_person_face.pt"
+        simple_download(
+            url=public_oss_url(path="models/mivolo/mivolo_imbd.pth.tar"),
+            filepath=detector_weights,
+        )
+        simple_download(
+            url=public_oss_url(path="models/mivolo/yolov8x_person_face.pt"),
+            filepath=checkpoint,
+        )
+
+        self.detector_model = Detector(detector_weights, device, verbose=verbose)
         self.age_gender_model = MiVOLO(
-            config.checkpoint,
-            config.device,
+            checkpoint,
+            device,
             half=True,
-            use_persons=config.with_persons,
-            disable_faces=config.disable_faces,
+            use_persons=with_persons,
+            disable_faces=disable_faces,
             verbose=verbose,
         )
-        self.draw = config.draw
 
-    def recognize(self, image: np.ndarray) -> Tuple[PersonAndFaceResult, Optional[np.ndarray]]:
-        detected_objects: PersonAndFaceResult = self.detector.predict(image)
+    def predict(self, image: np.ndarray, draw=False, *args, **kwargs):
+        detected_objects: PersonAndFaceResult = self.detector_model.predict(image)
         self.age_gender_model.predict(image, detected_objects)
 
         out_im = None
-        if self.draw:
-            # plot results on image
+        if draw:
             out_im = detected_objects.plot()
-
-        return detected_objects, out_im
-
-    def recognize_video(self, source: str) -> Generator:
-        video_capture = cv2.VideoCapture(source)
-        if not video_capture.isOpened():
-            raise ValueError(f"Failed to open video source {source}")
-
-        detected_objects_history: Dict[int, List[AGE_GENDER_TYPE]] = defaultdict(list)
-
-        total_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        for _ in tqdm.tqdm(range(total_frames)):
-            ret, frame = video_capture.read()
-            if not ret:
-                break
-
-            detected_objects: PersonAndFaceResult = self.detector.track(frame)
-            self.age_gender_model.predict(frame, detected_objects)
-
-            current_frame_objs = detected_objects.get_results_for_tracking()
-            cur_persons: Dict[int, AGE_GENDER_TYPE] = current_frame_objs[0]
-            cur_faces: Dict[int, AGE_GENDER_TYPE] = current_frame_objs[1]
-
-            # add tr_persons and tr_faces to history
-            for guid, data in cur_persons.items():
-                # not useful for tracking :)
-                if None not in data:
-                    detected_objects_history[guid].append(data)
-            for guid, data in cur_faces.items():
-                if None not in data:
-                    detected_objects_history[guid].append(data)
-
-            detected_objects.set_tracked_age_gender(detected_objects_history)
-            if self.draw:
-                frame = detected_objects.plot()
-            yield detected_objects_history, frame
+        result = []
+        for i in range(detected_objects.n_objects):
+            result.append(
+                {
+                    "age": detected_objects.ages[i],
+                    "gender": detected_objects.genders[i],
+                    "gender_score": detected_objects.gender_scores[i],
+                    "body": detected_objects.yolo_results[i]
+                    .boxes.xywh.cpu()
+                    .numpy()[0]
+                    .tolist(),
+                    "cls": detected_objects.yolo_results[i]
+                    .boxes.cls.cpu()
+                    .numpy()[0]
+                    .tolist(),
+                }
+            )
+        result = [res for res in result if res["cls"] == 1]
+        return result, out_im
