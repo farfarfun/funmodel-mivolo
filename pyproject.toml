@@ -1,6 +1,6 @@
 [project]
 name = "funmodel-mivolo"
-version = "0.0.9"
+version = "0.0.10"
 description = "Layer MiVOLO for SOTA age and gender recognition"
 readme = "README.md"
 requires-python = ">=3.10"
