@@ -1,5 +1,5 @@
 import numpy as np
-from fundrive.download import simple_download
+from funget import simple_download
 from fundrive.drives.oss import public_oss_url
 from funmodel.core.predict.image import ImagePredictModel
 from funmodel.mivolo.model.mi_volo import MiVOLO
