@@ -187,7 +187,7 @@ def convert_to_pil(cv_im: Optional[np.ndarray], img_mode: str = "RGB") -> "Image
     if img_mode == "RGB":
         cv_im = cv2.cvtColor(cv_im, cv2.COLOR_BGR2RGB)
     else:
-        raise Exception("Incorrect image mode has been passed!")
+        raise ValueError(f"Incorrect image mode has been passed: {img_mode!r}, expected 'RGB'")
 
     cv_im = np.ascontiguousarray(cv_im)
     pil_image = Image.fromarray(cv_im)

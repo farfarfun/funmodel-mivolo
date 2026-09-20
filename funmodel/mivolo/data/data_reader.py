@@ -2,21 +2,23 @@ import os
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+from farlog import getLogger
 
-IMAGES_EXT: Tuple = (".jpeg", ".jpg", ".png", ".webp", ".bmp", ".gif")
-VIDEO_EXT: Tuple = (".mp4", ".avi", ".mov", ".mkv", ".webm")
+_logger = getLogger("funmodel.mivolo.data_reader")
+
+IMAGES_EXT: tuple = (".jpeg", ".jpg", ".png", ".webp", ".bmp", ".gif")
+VIDEO_EXT: tuple = (".mp4", ".avi", ".mov", ".mkv", ".webm")
 
 
 @dataclass
 class PictureInfo:
     image_path: str
-    age: Optional[str]  # age or age range(start;end format) or "-1"
-    gender: Optional[str]  # "M" of "F" or "-1"
-    bbox: List[int] = field(default_factory=lambda: [-1, -1, -1, -1])  # face bbox: xyxy
-    person_bbox: List[int] = field(default_factory=lambda: [-1, -1, -1, -1])  # person bbox: xyxy
+    age: str | None  # age or age range(start;end format) or "-1"
+    gender: str | None  # "M" of "F" or "-1"
+    bbox: list[int] = field(default_factory=lambda: [-1, -1, -1, -1])  # face bbox: xyxy
+    person_bbox: list[int] = field(default_factory=lambda: [-1, -1, -1, -1])  # person bbox: xyxy
 
     @property
     def has_person_bbox(self) -> bool:
@@ -46,11 +48,11 @@ class AnnotType(Enum):
 
     @classmethod
     def _missing_(cls, value):
-        print(f"WARN: Unknown annotation type {value}.")
+        _logger.warning(f"Unknown annotation type {value}.")
         return AnnotType.NONE
 
 
-def get_all_files(path: str, extensions: Tuple = IMAGES_EXT):
+def get_all_files(path: str, extensions: tuple = IMAGES_EXT):
     files_all = []
     for root, subFolders, files in os.walk(path):
         for name in files:
@@ -68,7 +70,7 @@ class InputType(Enum):
 
 def get_input_type(input_path: str) -> InputType:
     if os.path.isdir(input_path):
-        print("Input is a folder, only images will be processed")
+        _logger.info("Input is a folder, only images will be processed")
         return InputType.Image
     elif os.path.isfile(input_path):
         if input_path.endswith(VIDEO_EXT):
@@ -88,12 +90,12 @@ def get_input_type(input_path: str) -> InputType:
 
 
 def read_csv_annotation_file(annotation_file: str, images_dir: str, ignore_without_gt=False):
-    bboxes_per_image: Dict[str, List[PictureInfo]] = defaultdict(list)
+    bboxes_per_image: dict[str, list[PictureInfo]] = defaultdict(list)
 
     df = pd.read_csv(annotation_file, sep=",")
 
     annot_type = AnnotType("persons") if "person_x0" in df.columns else AnnotType("original")
-    print(f"Reading {annotation_file} (type: {annot_type})...")
+    _logger.info(f"Reading {annotation_file} (type: {annot_type})...")
 
     missing_images = 0
     for index, row in df.iterrows():
@@ -121,5 +123,5 @@ def read_csv_annotation_file(annotation_file: str, images_dir: str, ignore_witho
         bboxes_per_image[img_path].append(pic_info)
 
     if missing_images > 0:
-        print(f"WARNING: Missing images: {missing_images}/{len(df)}")
+        _logger.warning(f"Missing images: {missing_images}/{len(df)}")
     return bboxes_per_image, annot_type

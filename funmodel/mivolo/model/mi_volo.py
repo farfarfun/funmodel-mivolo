@@ -1,14 +1,14 @@
-import logging
 from typing import Optional
 
 import numpy as np
 import torch
+from farlog import getLogger
 from funmodel.mivolo.data.misc import prepare_classification_images
 from funmodel.mivolo.model.create_timm_model import create_model
 from funmodel.mivolo.structures import PersonAndFaceCrops, PersonAndFaceResult
 from timm.data import resolve_data_config
 
-_logger = logging.getLogger("MiVOLO")
+_logger = getLogger("MiVOLO")
 has_compile = hasattr(torch, "compile")
 
 

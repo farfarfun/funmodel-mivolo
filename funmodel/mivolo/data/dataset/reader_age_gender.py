@@ -289,8 +289,8 @@ def verify_images(
     try:
         im_cv = cv2.imread(img_path)
         im_h, im_w = im_cv.shape[:2]
-    except Exception:
-        msgs.append(f"Can not load image {img_path}")
+    except (cv2.error, OSError, AttributeError) as e:
+        msgs.append(f"Can not load image {img_path}: {e}")
         is_corrupted = True
         return None, {}, msgs, is_corrupted, is_empty_annotations, skipped_crops
 
