@@ -17,7 +17,7 @@ dependencies = [
     "timm==0.8.13.dev0",
     "yt_dlp>=2023.12.30",
     "lapx>=0.5.2",
-    "setuptools<81",
+    "setuptools<84",
 ]
 
 [build-system]
