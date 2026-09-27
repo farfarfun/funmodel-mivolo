@@ -3,14 +3,14 @@ name = "funmodel-mivolo"
 version = "0.0.10"
 description = "Layer MiVOLO for SOTA age and gender recognition"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "牛哥", email = "farfarfun@qq.com" }]
 dependencies = [
     "funmodel>=0.0.9",
     "fundrive[oss]>=2.0",
-    "funget>=1.1",
+    "funget>=1.1.63",
     "farlog>=1.1.8",
     "huggingface_hub>=0.20",
     "ultralytics==8.0.124",

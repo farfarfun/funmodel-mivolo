@@ -1,4 +1,3 @@
-import logging
 import os
 from functools import partial
 from multiprocessing.pool import ThreadPool
@@ -6,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
+from farlog import getLogger
 from funmodel.mivolo.data.data_reader import AnnotType, PictureInfo, get_all_files, read_csv_annotation_file
 from funmodel.mivolo.data.misc import IOU, class_letterbox
 from timm.data.readers.reader import Reader
@@ -15,7 +15,7 @@ CROP_ROUND_TOL = 0.3
 MIN_PERSON_SIZE = 100
 MIN_PERSON_CROP_AFTERCUT_RATIO = 0.4
 
-_logger = logging.getLogger("ReaderAgeGender")
+_logger = getLogger("ReaderAgeGender")
 
 
 class ReaderAgeGender(Reader):
@@ -242,8 +242,8 @@ class ReaderAgeGender(Reader):
             pbar.close()
 
         for msg in all_msgs:
-            print(msg)
-        print(f"\nLeft images: {len(good_anns)}")
+            _logger.info(msg)
+        _logger.info(f"剩余图片数量：{len(good_anns)}")
 
         return good_anns, all_associated_objects
 

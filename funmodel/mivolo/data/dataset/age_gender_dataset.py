@@ -1,14 +1,14 @@
-import logging
 from typing import Any, List, Optional, Set
 
 import cv2
 import numpy as np
 import torch
+from farlog import getLogger
 from funmodel.mivolo.data.dataset.reader_age_gender import ReaderAgeGender
 from PIL import Image
 from torchvision import transforms
 
-_logger = logging.getLogger("AgeGenderDataset")
+_logger = getLogger("AgeGenderDataset")
 
 
 class AgeGenderDataset(torch.utils.data.Dataset):

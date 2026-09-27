@@ -4,7 +4,7 @@ Code adapted from timm https://github.com/huggingface/pytorch-image-models
 Modifications and additions for mivolo by / Copyright 2023, Irina Tolstykh, Maxim Kuprashevich
 """
 
-import logging
+from farlog import getLogger
 from contextlib import suppress
 from functools import partial
 from itertools import repeat
@@ -17,7 +17,7 @@ from timm.data.dataset import IterableImageDataset
 from timm.data.loader import PrefetchLoader, _worker_init
 from timm.data.transforms_factory import create_transform
 
-_logger = logging.getLogger(__name__)
+_logger = getLogger(__name__)
 
 
 def fast_collate(batch, target_dtype=torch.uint8):

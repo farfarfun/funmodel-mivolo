@@ -57,14 +57,12 @@ class MivoloPredictor(ImagePredictModel):
         """
         checkpoint = f"{self.cache_path}/mivolo_imbd.pth.tar"
         detector_weights = f"{self.cache_path}/yolov8x_person_face.pt"
-        simple_download(
-            url=public_oss_url(path="models/mivolo/mivolo_imbd.pth.tar"),
-            filepath=checkpoint,
-        )
-        simple_download(
-            url=public_oss_url(path="models/mivolo/yolov8x_person_face.pt"),
-            filepath=detector_weights,
-        )
+        for url, filepath in (
+            (public_oss_url(path="models/mivolo/mivolo_imbd.pth.tar"), checkpoint),
+            (public_oss_url(path="models/mivolo/yolov8x_person_face.pt"), detector_weights),
+        ):
+            if not simple_download(url=url, filepath=filepath):
+                raise RuntimeError(f"模型权重下载失败：url={url}，filepath={filepath}")
 
         self.detector_model = Detector(detector_weights, device, verbose=verbose)
         self.age_gender_model = MiVOLO(
