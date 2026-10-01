@@ -1,7 +1,6 @@
 import argparse
 import ast
 import re
-from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -93,15 +92,15 @@ def box_iou(box1, box2, over_second=False):
         return iou
 
 
-def split_batch(bs: int, dev: int) -> Tuple[int, int]:
+def split_batch(bs: int, dev: int) -> tuple[int, int]:
     full_bs = (bs // dev) * dev
     part_bs = bs - full_bs
     return full_bs, part_bs
 
 
 def assign_faces(
-    persons_bboxes: List[torch.tensor], faces_bboxes: List[torch.tensor], iou_thresh: float = 0.0001
-) -> Tuple[List[Optional[int]], List[int]]:
+    persons_bboxes: list[torch.tensor], faces_bboxes: list[torch.tensor], iou_thresh: float = 0.0001
+) -> tuple[list[int | None], list[int]]:
     """
     Assign person to each face if it is possible.
     Return:
@@ -110,8 +109,8 @@ def assign_faces(
         - unassigned_persons_inds List[int]: persons indexes without any assigned face
     """
 
-    assigned_faces: List[Optional[int]] = [None for _ in range(len(faces_bboxes))]
-    unassigned_persons_inds: List[int] = [p_ind for p_ind in range(len(persons_bboxes))]
+    assigned_faces: list[int | None] = [None for _ in range(len(faces_bboxes))]
+    unassigned_persons_inds: list[int] = [p_ind for p_ind in range(len(persons_bboxes))]
 
     if len(persons_bboxes) == 0 or len(faces_bboxes) == 0:
         return assigned_faces, unassigned_persons_inds
@@ -168,14 +167,14 @@ def class_letterbox(im, new_shape=(640, 640), color=(0, 0, 0), scaleup=True):
 
 
 def prepare_classification_images(
-    img_list: List[Optional[np.ndarray]],
+    img_list: list[np.ndarray | None],
     target_size: int = 224,
     mean=IMAGENET_DEFAULT_MEAN,
     std=IMAGENET_DEFAULT_STD,
     device=None,
 ) -> torch.tensor:
 
-    prepared_images: List[torch.tensor] = []
+    prepared_images: list[torch.tensor] = []
 
     for img in img_list:
         if img is None:
@@ -209,7 +208,7 @@ def prepare_classification_images(
     return prepared_input
 
 
-def IOU(bb1: Union[tuple, list], bb2: Union[tuple, list], norm_second_bbox: bool = False) -> float:
+def IOU(bb1: tuple | list, bb2: tuple | list, norm_second_bbox: bool = False) -> float:
     # expects [ymin, xmin, ymax, xmax], doesnt matter absolute or relative
     assert bb1[1] < bb1[3]
     assert bb1[0] < bb1[2]

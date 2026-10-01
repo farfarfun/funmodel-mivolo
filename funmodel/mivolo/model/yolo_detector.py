@@ -1,10 +1,9 @@
 import os
-from typing import Dict, Union
 
 import numpy as np
-import PIL
 import torch
 from funmodel.mivolo.structures import PersonAndFaceResult
+from PIL import Image
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.engine.results import Results
 
@@ -31,16 +30,16 @@ class Detector:
         if self.half:
             self.yolo.model = self.yolo.model.half()
 
-        self.detector_names: Dict[int, str] = self.yolo.model.names
+        self.detector_names: dict[int, str] = self.yolo.model.names
 
         # init yolo.predictor
         self.detector_kwargs = {"conf": conf_thresh, "iou": iou_thresh, "half": self.half, "verbose": verbose}
         # self.yolo.predict(**self.detector_kwargs)
 
-    def predict(self, image: Union[np.ndarray, str, "PIL.Image"]) -> PersonAndFaceResult:
+    def predict(self, image: np.ndarray | str | Image.Image) -> PersonAndFaceResult:
         results: Results = self.yolo.predict(image, **self.detector_kwargs)[0]
         return PersonAndFaceResult(results)
 
-    def track(self, image: Union[np.ndarray, str, "PIL.Image"]) -> PersonAndFaceResult:
+    def track(self, image: np.ndarray | str | Image.Image) -> PersonAndFaceResult:
         results: Results = self.yolo.track(image, persist=True, **self.detector_kwargs)[0]
         return PersonAndFaceResult(results)

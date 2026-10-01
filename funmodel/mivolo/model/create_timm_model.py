@@ -5,7 +5,7 @@ Modifications and additions for mivolo by / Copyright 2023, Irina Tolstykh, Maxi
 """
 
 import os
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import timm
 
@@ -61,12 +61,12 @@ def load_checkpoint(
 def create_model(
     model_name: str,
     pretrained: bool = False,
-    pretrained_cfg: Optional[Union[str, Dict[str, Any], PretrainedCfg]] = None,
-    pretrained_cfg_overlay: Optional[Dict[str, Any]] = None,
+    pretrained_cfg: str | dict[str, Any] | PretrainedCfg | None = None,
+    pretrained_cfg_overlay: dict[str, Any] | None = None,
     checkpoint_path: str = "",
-    scriptable: Optional[bool] = None,
-    exportable: Optional[bool] = None,
-    no_jit: Optional[bool] = None,
+    scriptable: bool | None = None,
+    exportable: bool | None = None,
+    no_jit: bool | None = None,
     filter_keys=None,
     state_dict_map=None,
     **kwargs,

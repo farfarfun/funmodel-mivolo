@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import torch
 from mivolo.model.mi_volo import MiVOLO
 
@@ -26,7 +24,7 @@ def build(
     mivolo_model: MiVOLO,
     workers: int,
     batch_size: int,
-) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
+) -> tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
 
     dataset_class = DATASET_CLASS_MAP[name]
 

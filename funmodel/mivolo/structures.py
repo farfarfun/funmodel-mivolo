@@ -1,7 +1,6 @@
 import math
 import os
 from copy import deepcopy
-from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -13,25 +12,25 @@ from ultralytics.yolo.utils.plotting import Annotator, colors
 # because of ultralytics bug it is important to unset CUBLAS_WORKSPACE_CONFIG after the module importing
 os.unsetenv("CUBLAS_WORKSPACE_CONFIG")
 
-AGE_GENDER_TYPE = Tuple[float, str]
+AGE_GENDER_TYPE = tuple[float, str]
 
 
 class PersonAndFaceCrops:
     def __init__(self):
         # int: index of person along results
-        self.crops_persons: Dict[int, np.ndarray] = {}
+        self.crops_persons: dict[int, np.ndarray] = {}
 
         # int: index of face along results
-        self.crops_faces: Dict[int, np.ndarray] = {}
+        self.crops_faces: dict[int, np.ndarray] = {}
 
         # int: index of face along results
-        self.crops_faces_wo_body: Dict[int, np.ndarray] = {}
+        self.crops_faces_wo_body: dict[int, np.ndarray] = {}
 
         # int: index of person along results
-        self.crops_persons_wo_face: Dict[int, np.ndarray] = {}
+        self.crops_persons_wo_face: dict[int, np.ndarray] = {}
 
     def _add_to_output(
-        self, crops: Dict[int, np.ndarray], out_crops: List[np.ndarray], out_crop_inds: List[Optional[int]]
+        self, crops: dict[int, np.ndarray], out_crops: list[np.ndarray], out_crop_inds: list[int | None]
     ):
         inds_to_add = list(crops.keys())
         crops_to_add = list(crops.values())
@@ -40,7 +39,7 @@ class PersonAndFaceCrops:
 
     def _get_all_faces(
         self, use_persons: bool, use_faces: bool
-    ) -> Tuple[List[Optional[int]], List[Optional[np.ndarray]]]:
+    ) -> tuple[list[int | None], list[np.ndarray | None]]:
         """
         Returns
             if use_persons and use_faces
@@ -55,8 +54,8 @@ class PersonAndFaceCrops:
             faces_inds.extend([None for _ in range(num)])
             faces_crops.extend([None for _ in range(num)])
 
-        faces_inds: List[Optional[int]] = []
-        faces_crops: List[Optional[np.ndarray]] = []
+        faces_inds: list[int | None] = []
+        faces_crops: list[np.ndarray | None] = []
 
         if not use_faces:
             add_none_to_output(faces_inds, faces_crops, len(self.crops_persons) + len(self.crops_persons_wo_face))
@@ -72,7 +71,7 @@ class PersonAndFaceCrops:
 
     def _get_all_bodies(
         self, use_persons: bool, use_faces: bool
-    ) -> Tuple[List[Optional[int]], List[Optional[np.ndarray]]]:
+    ) -> tuple[list[int | None], list[np.ndarray | None]]:
         """
         Returns
             if use_persons and use_faces
@@ -87,8 +86,8 @@ class PersonAndFaceCrops:
             bodies_inds.extend([None for _ in range(num)])
             bodies_crops.extend([None for _ in range(num)])
 
-        bodies_inds: List[Optional[int]] = []
-        bodies_crops: List[Optional[np.ndarray]] = []
+        bodies_inds: list[int | None] = []
+        bodies_crops: list[np.ndarray | None] = []
 
         if not use_persons:
             add_none_to_output(bodies_inds, bodies_crops, len(self.crops_faces) + len(self.crops_faces_wo_body))
@@ -134,12 +133,12 @@ class PersonAndFaceResult:
         assert "person" in names and "face" in names
 
         # initially no faces and persons are associated to each other
-        self.face_to_person_map: Dict[int, Optional[int]] = {ind: None for ind in self.get_bboxes_inds("face")}
-        self.unassigned_persons_inds: List[int] = self.get_bboxes_inds("person")
+        self.face_to_person_map: dict[int, int | None] = {ind: None for ind in self.get_bboxes_inds("face")}
+        self.unassigned_persons_inds: list[int] = self.get_bboxes_inds("person")
         n_objects = len(self.yolo_results.boxes)
-        self.ages: List[Optional[float]] = [None for _ in range(n_objects)]
-        self.genders: List[Optional[str]] = [None for _ in range(n_objects)]
-        self.gender_scores: List[Optional[float]] = [None for _ in range(n_objects)]
+        self.ages: list[float | None] = [None for _ in range(n_objects)]
+        self.genders: list[str | None] = [None for _ in range(n_objects)]
+        self.gender_scores: list[float | None] = [None for _ in range(n_objects)]
 
     @property
     def n_objects(self) -> int:
@@ -153,8 +152,8 @@ class PersonAndFaceResult:
     def n_persons(self) -> int:
         return len(self.get_bboxes_inds("person"))
 
-    def get_bboxes_inds(self, category: str) -> List[int]:
-        bboxes: List[int] = []
+    def get_bboxes_inds(self, category: str) -> list[int]:
+        bboxes: list[int] = []
         for ind, det in enumerate(self.yolo_results.boxes):
             name = self.yolo_results.names[int(det.cls)]
             if name == category:
@@ -250,7 +249,7 @@ class PersonAndFaceResult:
 
         return annotator.result()
 
-    def set_tracked_age_gender(self, tracked_objects: Dict[int, List[AGE_GENDER_TYPE]]):
+    def set_tracked_age_gender(self, tracked_objects: dict[int, list[AGE_GENDER_TYPE]]):
         """
         Update age and gender for objects based on history from tracked_objects.
         Args:
@@ -284,7 +283,7 @@ class PersonAndFaceResult:
             self.set_gender(person_ind, gender, 1.0)
             self.set_age(person_ind, age)
 
-    def _get_id_by_ind(self, ind: Optional[int] = None) -> int:
+    def _get_id_by_ind(self, ind: int | None = None) -> int:
         if ind is None:
             return -1
         obj_id = self.yolo_results.boxes[ind].id
@@ -301,18 +300,18 @@ class PersonAndFaceResult:
             bb[3] = torch.clamp(bb[3], min=0, max=im_h - 1)
         return bb
 
-    def set_age(self, ind: Optional[int], age: float):
+    def set_age(self, ind: int | None, age: float):
         if ind is not None:
             self.ages[ind] = age
 
-    def set_gender(self, ind: Optional[int], gender: str, gender_score: float):
+    def set_gender(self, ind: int | None, gender: str, gender_score: float):
         if ind is not None:
             self.genders[ind] = gender
             self.gender_scores[ind] = gender_score
 
     @staticmethod
     def _gather_tracking_result(
-        tracked_objects: Dict[int, List[AGE_GENDER_TYPE]],
+        tracked_objects: dict[int, list[AGE_GENDER_TYPE]],
         fguid: int = -1,
         pguid: int = -1,
         minimum_sample_size: int = 10,
@@ -350,12 +349,12 @@ class PersonAndFaceResult:
 
         return age, gender
 
-    def get_results_for_tracking(self) -> Tuple[Dict[int, AGE_GENDER_TYPE], Dict[int, AGE_GENDER_TYPE]]:
+    def get_results_for_tracking(self) -> tuple[dict[int, AGE_GENDER_TYPE], dict[int, AGE_GENDER_TYPE]]:
         """
         Get objects from current frame
         """
-        persons: Dict[int, AGE_GENDER_TYPE] = {}
-        faces: Dict[int, AGE_GENDER_TYPE] = {}
+        persons: dict[int, AGE_GENDER_TYPE] = {}
+        faces: dict[int, AGE_GENDER_TYPE] = {}
 
         names = self.yolo_results.names
         pred_boxes = self.yolo_results.boxes
@@ -372,11 +371,11 @@ class PersonAndFaceResult:
         return persons, faces
 
     def associate_faces_with_persons(self):
-        face_bboxes_inds: List[int] = self.get_bboxes_inds("face")
-        person_bboxes_inds: List[int] = self.get_bboxes_inds("person")
+        face_bboxes_inds: list[int] = self.get_bboxes_inds("face")
+        person_bboxes_inds: list[int] = self.get_bboxes_inds("person")
 
-        face_bboxes: List[torch.tensor] = [self.get_bbox_by_ind(ind) for ind in face_bboxes_inds]
-        person_bboxes: List[torch.tensor] = [self.get_bbox_by_ind(ind) for ind in person_bboxes_inds]
+        face_bboxes: list[torch.tensor] = [self.get_bbox_by_ind(ind) for ind in face_bboxes_inds]
+        person_bboxes: list[torch.tensor] = [self.get_bbox_by_ind(ind) for ind in person_bboxes_inds]
 
         self.face_to_person_map = {ind: None for ind in face_bboxes_inds}
         assigned_faces, unassigned_persons_inds = assign_faces(person_bboxes, face_bboxes)
@@ -389,8 +388,8 @@ class PersonAndFaceResult:
         self.unassigned_persons_inds = [person_bboxes_inds[person_ind] for person_ind in unassigned_persons_inds]
 
     def crop_object(
-        self, full_image: np.ndarray, ind: int, cut_other_classes: Optional[List[str]] = None
-    ) -> Optional[np.ndarray]:
+        self, full_image: np.ndarray, ind: int, cut_other_classes: list[str] | None = None
+    ) -> np.ndarray | None:
 
         IOU_THRESH = 0.000001
         MIN_PERSON_CROP_AFTERCUT_RATIO = 0.4
@@ -411,7 +410,7 @@ class PersonAndFaceResult:
             return obj_image
 
         # calc iou between obj_bbox and other bboxes
-        other_bboxes: List[torch.tensor] = [
+        other_bboxes: list[torch.tensor] = [
             self.get_bbox_by_ind(other_ind, *full_image.shape[:2]) for other_ind in range(len(self.yolo_results.boxes))
         ]
 

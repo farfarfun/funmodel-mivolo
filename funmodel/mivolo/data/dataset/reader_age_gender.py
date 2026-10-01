@@ -1,7 +1,6 @@
 import os
 from functools import partial
 from multiprocessing.pool import ThreadPool
-from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -67,9 +66,9 @@ class ReaderAgeGender(Reader):
         self.target_size = target_size
 
         # Reading annotations. Can be multiple files if annotations_path dir
-        self._ann: Dict[str, List[PictureInfo]] = {}  # list of samples for each image
-        self._associated_objects: Dict[str, Dict[int, List[List[int]]]] = {}
-        self._faces_list: List[Tuple[str, int]] = []  # samples from this list will be loaded in __getitem__
+        self._ann: dict[str, list[PictureInfo]] = {}  # list of samples for each image
+        self._associated_objects: dict[str, dict[int, list[list[int]]]] = {}
+        self._faces_list: list[tuple[str, int]] = []  # samples from this list will be loaded in __getitem__
 
         self._read_annotations(images_path, annotations_path)
         _logger.info(f"Dataset length: {len(self._faces_list)} crops")
@@ -160,7 +159,7 @@ class ReaderAgeGender(Reader):
         img,
         asced_objects=None,
         crop_out_color=(0, 0, 0),
-    ) -> Tuple[np.ndarray, bool]:
+    ) -> tuple[np.ndarray, bool]:
 
         empty_bbox = False
 
@@ -190,8 +189,8 @@ class ReaderAgeGender(Reader):
 
     def prepare_annotations(self):
 
-        good_anns: Dict[str, List[PictureInfo]] = {}
-        all_associated_objects: Dict[str, Dict[int, List[List[int]]]] = {}
+        good_anns: dict[str, list[PictureInfo]] = {}
+        all_associated_objects: dict[str, dict[int, list[list[int]]]] = {}
 
         if not self.with_persons:
             # remove all persons
@@ -271,7 +270,7 @@ def verify_images(
         only_age=only_age,
     )
 
-    def bbox_correct(bbox, min_size, im_h, im_w) -> Tuple[bool, List[int]]:
+    def bbox_correct(bbox, min_size, im_h, im_w) -> tuple[bool, list[int]]:
         ymin, ymax, xmin, xmax = _correct_bbox(bbox, im_h, im_w)
         crop_h, crop_w = ymax - ymin, xmax - xmin
         if crop_h < min_size or crop_w < min_size:
@@ -285,7 +284,7 @@ def verify_images(
     is_empty_annotations = False
 
     img_path: str = img_info[0]
-    img_samples: List[PictureInfo] = img_info[1]
+    img_samples: list[PictureInfo] = img_info[1]
     try:
         im_cv = cv2.imread(img_path)
         im_h, im_w = im_cv.shape[:2]
@@ -294,7 +293,7 @@ def verify_images(
         is_corrupted = True
         return None, {}, msgs, is_corrupted, is_empty_annotations, skipped_crops
 
-    out_samples: List[PictureInfo] = []
+    out_samples: list[PictureInfo] = []
     for sample in img_samples:
         # correct face bbox
         if sample.has_face_bbox:
@@ -322,13 +321,13 @@ def verify_images(
     out_samples = sorted(out_samples, key=lambda sample: 1 if not sample.has_gt(only_age) else 0)
 
     # for each person find other faces and persons bboxes, intersected with it
-    associated_objects: Dict[int, List[List[int]]] = find_associated_objects(out_samples, only_age=only_age)
+    associated_objects: dict[int, list[list[int]]] = find_associated_objects(out_samples, only_age=only_age)
 
     out_samples, associated_objects, skipped_crops = filter_bad_samples(
         out_samples, associated_objects, im_cv, msgs, skipped_crops, **kwargs
     )
 
-    out_img_info: Optional[Tuple[str, List]] = (img_path, out_samples)
+    out_img_info: tuple[str, list] | None = (img_path, out_samples)
     if len(out_samples) == 0:
         out_img_info = None
         is_empty_annotations = True
@@ -337,10 +336,10 @@ def verify_images(
 
 
 def filter_bad_samples(
-    out_samples: List[PictureInfo],
+    out_samples: list[PictureInfo],
     associated_objects: dict,
     im_cv: np.ndarray,
-    msgs: List[str],
+    msgs: list[str],
     skipped_crops: int,
     **kwargs,
 ):
@@ -409,12 +408,12 @@ def _filter_by_ind(out_samples, associated_objects, inds):
 
 
 def find_associated_objects(
-    image_samples: List[PictureInfo], iou_thresh=0.0001, only_age=False
-) -> Dict[int, List[List[int]]]:
+    image_samples: list[PictureInfo], iou_thresh=0.0001, only_age=False
+) -> dict[int, list[list[int]]]:
     """
     For each person (which has gt age and gt gender) find other faces and persons bboxes, intersected with it
     """
-    associated_objects: Dict[int, List[List[int]]] = {}
+    associated_objects: dict[int, list[list[int]]] = {}
 
     for iindex, image_sample_info in enumerate(image_samples):
         # add own face

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Set
+from typing import Any
 
 import cv2
 import numpy as np
@@ -54,24 +54,24 @@ class AgeGenderDataset(torch.utils.data.Dataset):
 
         # Setting up classes.
         # If min and max classes are passed - use them to have the same preprocessing for validation
-        self.max_age: float = None
-        self.min_age: float = None
-        self.avg_age: float = None
+        self.max_age: float | None = None
+        self.min_age: float | None = None
+        self.avg_age: float | None = None
         self.set_ages_min_max(min_age, max_age)
 
         self.genders = ["M", "F"]
         self.num_classes_gender = len(self.genders)
 
-        self.age_classes: Optional[List[str]] = self.set_age_classes()
+        self.age_classes: list[str] | None = self.set_age_classes()
 
         self.num_classes_age = 1 if self.age_classes is None else len(self.age_classes)
         self.num_classes: int = self.num_classes_age + self.num_classes_gender
         self.target_dtype = torch.float32
 
-    def set_age_classes(self) -> Optional[List[str]]:
+    def set_age_classes(self) -> list[str] | None:
         return None  # for regression dataset
 
-    def set_ages_min_max(self, min_age: Optional[float], max_age: Optional[float]):
+    def set_ages_min_max(self, min_age: float | None, max_age: float | None):
 
         assert all(age is None for age in [min_age, max_age]) or all(
             age is not None for age in [min_age, max_age]
@@ -83,7 +83,7 @@ class AgeGenderDataset(torch.utils.data.Dataset):
             self.min_age = min_age
         else:
             # collect statistics from loaded dataset
-            all_ages_set: Set[int] = set()
+            all_ages_set: set[int] = set()
             for img_path, image_samples in self.reader._ann.items():
                 for image_sample_info in image_samples:
                     if image_sample_info.age == "-1":
@@ -106,14 +106,14 @@ class AgeGenderDataset(torch.utils.data.Dataset):
             gender = -1
         return gender
 
-    def parse_target(self, _age: str, gender: str) -> List[Any]:
+    def parse_target(self, _age: str, gender: str) -> list[Any]:
         if _age != "-1":
             age = round(float(_age))
             age = self._norm_age(float(age))
         else:
             age = -1
 
-        target: List[float] = [age, self.parse_gender(gender)]
+        target: list[float] = [age, self.parse_gender(gender)]
         return target
 
     @property
@@ -135,7 +135,7 @@ class AgeGenderDataset(torch.utils.data.Dataset):
             _trans.append(trans)
         self._transform = transforms.Compose(_trans)
 
-    def apply_tranforms(self, image: Optional[np.ndarray]) -> np.ndarray:
+    def apply_tranforms(self, image: np.ndarray | None) -> np.ndarray:
         if image is None:
             return None
 
@@ -180,7 +180,7 @@ class AgeGenderDataset(torch.utils.data.Dataset):
         return self.reader.filenames(basename, absolute)
 
 
-def convert_to_pil(cv_im: Optional[np.ndarray], img_mode: str = "RGB") -> "Image":
+def convert_to_pil(cv_im: np.ndarray | None, img_mode: str = "RGB") -> "Image":
     if cv_im is None:
         return None
 

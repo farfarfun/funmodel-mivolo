@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 import torch
 from farlog import getLogger
@@ -82,7 +80,7 @@ class MiVOLO:
         disable_faces: bool = False,
         use_persons: bool = True,
         verbose: bool = False,
-        torchcompile: Optional[str] = None,
+        torchcompile: str | None = None,
     ):
         self.verbose = verbose
         self.device = torch.device(device)
