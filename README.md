@@ -13,16 +13,26 @@ pip install funmodel-mivolo
 ## 最小示例
 
 ```python
-import cv2
-from funmodel.mivolo.predictor import MivoloPredictor
+from funmodel.mivolo import MivoloPredictor
+from funmodel.utils.image.transform import url_to_cvimg
 
 predictor = MivoloPredictor(device="cpu")
-image = cv2.imread("example.jpg")
+image = url_to_cvimg(
+    "https://raw.githubusercontent.com/WildChlamydia/MiVOLO/"
+    "main/images/MiVOLO.jpg"
+)
 results, _ = predictor.predict(image)
 print(results)  # [{"age": ..., "gender": ..., "gender_score": ..., ...}, ...]
 ```
 
 首次调用会自动从组织 OSS 下载 `mivolo_imbd.pth.tar` 和 `yolov8x_person_face.pt` 两个权重文件到本地缓存目录。
+
+## 第三方代码与许可证
+
+本项目基于 [WildChlamydia/MiVOLO](https://github.com/WildChlamydia/MiVOLO)
+封装，并包含从 [timm](https://github.com/huggingface/pytorch-image-models) 改编的实现。
+MiVOLO 和 timm 均采用 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)；
+相关源文件保留了原始版权、许可证和修改声明。本项目其余代码采用 [MIT](LICENSE) 协议。
 
 ---
 
