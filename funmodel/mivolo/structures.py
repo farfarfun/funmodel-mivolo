@@ -16,6 +16,12 @@ AGE_GENDER_TYPE = tuple[float, str]
 
 
 class PersonAndFaceCrops:
+    """缓存一帧检测结果中按人体/人脸拆分出的裁剪图。
+
+    四个字典均以检测框在 ``yolo_results`` 中的下标为 key，便于和
+    ``PersonAndFaceResult`` 中的 age/gender 结果按下标对齐。
+    """
+
     def __init__(self):
         # int: index of person along results
         self.crops_persons: dict[int, np.ndarray] = {}
@@ -31,7 +37,8 @@ class PersonAndFaceCrops:
 
     def _add_to_output(
         self, crops: dict[int, np.ndarray], out_crops: list[np.ndarray], out_crop_inds: list[int | None]
-    ):
+    ) -> None:
+        """将 ``crops`` 中的裁剪图及其下标原地追加到输出列表。"""
         inds_to_add = list(crops.keys())
         crops_to_add = list(crops.values())
         out_crops.extend(crops_to_add)
@@ -40,14 +47,18 @@ class PersonAndFaceCrops:
     def _get_all_faces(
         self, use_persons: bool, use_faces: bool
     ) -> tuple[list[int | None], list[np.ndarray | None]]:
-        """
-        Returns
-            if use_persons and use_faces
-                faces: faces_with_bodies + faces_without_bodies + [None] * len(crops_persons_wo_face)
-            if use_persons and not use_faces
-                faces: [None] * n_persons
-            if not use_persons and use_faces:
-                faces: faces_with_bodies + faces_without_bodies
+        """按 ``use_persons``/``use_faces`` 的组合拼出人脸裁剪序列。
+
+        Args:
+            use_persons: 是否同时使用人体框辅助判断。
+            use_faces: 是否使用人脸裁剪。
+
+        Returns:
+            (下标列表, 裁剪图列表)：
+            - ``use_persons and use_faces``：有人体关联的人脸 + 无人体关联的人脸
+              + ``[None] * len(crops_persons_wo_face)``；
+            - ``use_persons and not use_faces``：``[None] * n_persons``；
+            - ``not use_persons and use_faces``：有人体关联的人脸 + 无人体关联的人脸。
         """
 
         def add_none_to_output(faces_inds, faces_crops, num):
@@ -72,14 +83,18 @@ class PersonAndFaceCrops:
     def _get_all_bodies(
         self, use_persons: bool, use_faces: bool
     ) -> tuple[list[int | None], list[np.ndarray | None]]:
-        """
-        Returns
-            if use_persons and use_faces
-                persons: bodies_with_faces + [None] * len(faces_without_bodies) + bodies_without_faces
-            if use_persons and not use_faces
-                persons: bodies_with_faces + bodies_without_faces
-            if not use_persons and use_faces
-                persons: [None] * n_faces
+        """按 ``use_persons``/``use_faces`` 的组合拼出人体裁剪序列。
+
+        Args:
+            use_persons: 是否使用人体裁剪。
+            use_faces: 是否同时使用人脸框辅助判断。
+
+        Returns:
+            (下标列表, 裁剪图列表)：
+            - ``use_persons and use_faces``：有人脸关联的人体
+              + ``[None] * len(faces_without_bodies)`` + 无人脸关联的人体；
+            - ``use_persons and not use_faces``：有人脸关联的人体 + 无人脸关联的人体；
+            - ``not use_persons and use_faces``：``[None] * n_faces``。
         """
 
         def add_none_to_output(bodies_inds, bodies_crops, num):
@@ -101,11 +116,21 @@ class PersonAndFaceCrops:
 
         return bodies_inds, bodies_crops
 
-    def get_faces_with_bodies(self, use_persons: bool, use_faces: bool):
-        """
-        Return
-            faces: faces_with_bodies, faces_without_bodies, [None] * len(crops_persons_wo_face)
-            persons: bodies_with_faces, [None] * len(faces_without_bodies), bodies_without_faces
+    def get_faces_with_bodies(
+        self, use_persons: bool, use_faces: bool
+    ) -> tuple[
+        tuple[list[int | None], list[np.ndarray | None]],
+        tuple[list[int | None], list[np.ndarray | None]],
+    ]:
+        """按身体/人脸的使用策略对齐输出人体与人脸裁剪序列。
+
+        Args:
+            use_persons: 是否使用人体裁剪。
+            use_faces: 是否使用人脸裁剪。
+
+        Returns:
+            ``((人体下标列表, 人体裁剪列表), (人脸下标列表, 人脸裁剪列表))``，
+            两个子序列按下标一一对应，便于拼成模型输入。
         """
 
         bodies_inds, bodies_crops = self._get_all_bodies(use_persons, use_faces)
@@ -113,7 +138,8 @@ class PersonAndFaceCrops:
 
         return (bodies_inds, bodies_crops), (faces_inds, faces_crops)
 
-    def save(self, out_dir="output"):
+    def save(self, out_dir: str = "output") -> None:
+        """将所有裁剪图按序号写入 ``out_dir``，便于调试核对裁剪效果。"""
         ind = 0
         os.makedirs(out_dir, exist_ok=True)
         for crops in [self.crops_persons, self.crops_faces, self.crops_faces_wo_body, self.crops_persons_wo_face]:
@@ -126,6 +152,8 @@ class PersonAndFaceCrops:
 
 
 class PersonAndFaceResult:
+    """封装一帧 YOLO 检测结果，并维护人脸-人体关联与年龄/性别预测值。"""
+
     def __init__(self, results: Results):
 
         self.yolo_results = results
@@ -153,6 +181,7 @@ class PersonAndFaceResult:
         return len(self.get_bboxes_inds("person"))
 
     def get_bboxes_inds(self, category: str) -> list[int]:
+        """返回类别为 ``category``（``"face"`` 或 ``"person"``）的检测框下标列表。"""
         bboxes: list[int] = []
         for ind, det in enumerate(self.yolo_results.boxes):
             name = self.yolo_results.names[int(det.cls)]

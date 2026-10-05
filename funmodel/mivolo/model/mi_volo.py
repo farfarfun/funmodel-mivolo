@@ -72,6 +72,8 @@ class Meta:
 
 
 class MiVOLO:
+    """MiVOLO 年龄/性别分类模型封装：加载权重、预处理裁剪图并写回预测结果。"""
+
     def __init__(
         self,
         ckpt_path: str,
@@ -81,7 +83,18 @@ class MiVOLO:
         use_persons: bool = True,
         verbose: bool = False,
         torchcompile: str | None = None,
-    ):
+    ) -> None:
+        """从 checkpoint 加载 MiVOLO 模型并完成推理前的初始化。
+
+        Args:
+            ckpt_path: MiVOLO 权重文件路径（包含 ``min_age``/``max_age`` 等元信息）。
+            device: 推理设备，如 ``"cuda"`` 或 ``"cpu"``。
+            half: 是否使用半精度推理（``device`` 为 CPU 时自动关闭）。
+            disable_faces: 是否禁用人脸输入，仅使用人体裁剪。
+            use_persons: 是否同时使用人体裁剪辅助判断（需模型本身支持）。
+            verbose: 是否输出模型元信息日志。
+            torchcompile: 传给 ``torch.compile`` 的 backend 名称，为空则不编译。
+        """
         self.verbose = verbose
         self.device = torch.device(device)
         self.half = half and self.device.type != "cpu"
@@ -124,7 +137,13 @@ class MiVOLO:
         if self.half:
             self.model = self.model.half()
 
-    def warmup(self, batch_size: int, steps=10):
+    def warmup(self, batch_size: int, steps: int = 10) -> None:
+        """用随机输入跑若干次前向推理，用于预热 CUDA kernel、稳定首帧延迟。
+
+        Args:
+            batch_size: 预热用的 batch 大小。
+            steps: 预热迭代次数。
+        """
         if self.meta.with_persons_model:
             input_size = (6, self.input_size, self.input_size)
         else:
@@ -139,6 +158,7 @@ class MiVOLO:
             torch.cuda.synchronize()
 
     def inference(self, model_input: torch.tensor) -> torch.tensor:
+        """对预处理后的输入张量做一次前向推理，返回模型原始输出。"""
 
         with torch.no_grad():
             if self.half:
@@ -146,7 +166,14 @@ class MiVOLO:
             output = self.model(model_input)
         return output
 
-    def predict(self, image: np.ndarray, detected_bboxes: PersonAndFaceResult):
+    def predict(self, image: np.ndarray, detected_bboxes: PersonAndFaceResult) -> None:
+        """对检测到的人脸/人体裁剪图做年龄与性别预测，结果写回 ``detected_bboxes``。
+
+        Args:
+            image: 原始 BGR 图片，用于裁剪人脸/人体区域。
+            detected_bboxes: ``Detector`` 输出的检测结果，预测值原地写入其
+                ``ages``/``genders``/``gender_scores``。
+        """
         if (
             (detected_bboxes.n_objects == 0)
             or (not self.meta.use_persons and detected_bboxes.n_faces == 0)
@@ -170,7 +197,24 @@ class MiVOLO:
         # write gender and age results into detected_bboxes
         self.fill_in_results(output, detected_bboxes, faces_inds, bodies_inds)
 
-    def fill_in_results(self, output, detected_bboxes, faces_inds, bodies_inds):
+    def fill_in_results(
+        self,
+        output: torch.Tensor,
+        detected_bboxes: PersonAndFaceResult,
+        faces_inds: list[int | None],
+        bodies_inds: list[int | None],
+    ) -> None:
+        """将模型输出反归一化为年龄/性别，写入 ``detected_bboxes`` 对应下标。
+
+        年龄反归一化公式为 ``age = raw_age * (max_age - min_age) + avg_age``，
+        三个常量均来自训练时写入 checkpoint 的 ``self.meta``。
+
+        Args:
+            output: 模型前向输出（age 或 age+gender logits）。
+            detected_bboxes: 待写入预测结果的检测结果对象。
+            faces_inds: 每条输出对应的人脸下标（可能为 ``None``）。
+            bodies_inds: 每条输出对应的人体下标（可能为 ``None``）。
+        """
         if self.meta.only_age:
             age_output = output
             gender_probs, gender_indx = None, None
@@ -205,7 +249,19 @@ class MiVOLO:
                 detected_bboxes.set_gender(face_ind, gender, gender_score)
                 detected_bboxes.set_gender(body_ind, gender, gender_score)
 
-    def prepare_crops(self, image: np.ndarray, detected_bboxes: PersonAndFaceResult):
+    def prepare_crops(
+        self, image: np.ndarray, detected_bboxes: PersonAndFaceResult
+    ) -> tuple[torch.Tensor | None, torch.Tensor | None, list[int | None], list[int | None]]:
+        """从原图裁剪出人脸/人体区域并做模型输入所需的归一化预处理。
+
+        Args:
+            image: 原始 BGR 图片。
+            detected_bboxes: 已完成人脸-人体关联的检测结果。
+
+        Returns:
+            ``(人脸输入张量, 人体输入张量, 人脸下标列表, 人体下标列表)``；
+            未启用对应分支时返回 ``None``。
+        """
 
         if self.meta.use_person_crops and self.meta.use_face_crops:
             detected_bboxes.associate_faces_with_persons()

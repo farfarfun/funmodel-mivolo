@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
 from eval_tools import Metrics, time_sync, write_results
-from mivolo.data.dataset import build as build_data
-from mivolo.model.mi_volo import MiVOLO
 from timm.utils import setup_default_logging
+
+from funmodel.mivolo.data.dataset import build as build_data
+from funmodel.mivolo.model.mi_volo import MiVOLO
 
 _logger = logging.getLogger("inference")
 LOG_FREQUENCY = 10

@@ -6,10 +6,11 @@ from typing import Dict, List, Optional
 
 import cv2
 import tqdm
-from mivolo.data.data_reader import PictureInfo, get_all_files
-from mivolo.modeling.yolo_detector import Detector, PersonAndFaceResult
 from preparation_utils import get_additional_bboxes, get_main_face, save_annotations
 from prepare_fairface import find_persons_on_image
+
+from funmodel.mivolo.data.data_reader import PictureInfo, get_all_files
+from funmodel.mivolo.model.yolo_detector import Detector, PersonAndFaceResult
 
 
 def get_im_name(img_path):

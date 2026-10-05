@@ -2,9 +2,10 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import torch
-from mivolo.data.data_reader import PictureInfo
-from mivolo.data.misc import assign_faces, box_iou
-from mivolo.model.yolo_detector import PersonAndFaceResult
+
+from funmodel.mivolo.data.data_reader import PictureInfo
+from funmodel.mivolo.data.misc import assign_faces, box_iou
+from funmodel.mivolo.model.yolo_detector import PersonAndFaceResult
 
 
 def save_annotations(images: List[PictureInfo], images_dir: str, out_file: str):

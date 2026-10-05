@@ -13,9 +13,19 @@ CROP_ROUND_RATE = 0.1
 MIN_PERSON_CROP_NONZERO = 0.5
 
 
-def aggregate_votes_winsorized(ages, max_age_dist=6):
-    # Replace any annotation that is more than a max_age_dist away from the median
-    # with the median + max_age_dist if higher or max_age_dist - max_age_dist if below
+def aggregate_votes_winsorized(ages: list[float], max_age_dist: int = 6) -> float:
+    """对多次年龄标注做 Winsorized 均值，降低离群标注对结果的影响。
+
+    与中位数相差超过 ``max_age_dist`` 的标注会被截断到
+    ``median ± max_age_dist`` 后再求平均，而不是直接丢弃。
+
+    Args:
+        ages: 同一目标的多次年龄标注/预测值。
+        max_age_dist: 允许偏离中位数的最大年龄差。
+
+    Returns:
+        截断离群值后的平均年龄。
+    """
     median = np.median(ages)
     ages = np.clip(ages, median - max_age_dist, median + max_age_dist)
     return np.mean(ages)
@@ -60,19 +70,19 @@ class ParseKwargs(argparse.Action):
         setattr(namespace, self.dest, kw)
 
 
-def box_iou(box1, box2, over_second=False):
-    """
-    Return intersection-over-union (Jaccard index) of boxes.
-    If over_second == True, return mean(intersection-over-union, (inter / area2))
+def box_iou(box1: torch.Tensor, box2: torch.Tensor, over_second: bool = False) -> torch.Tensor:
+    """计算两组检测框两两之间的交并比（IoU）。
 
-    Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+    两组框均为 ``(x1, y1, x2, y2)`` 格式。
 
-    Arguments:
-        box1 (Tensor[N, 4])
-        box2 (Tensor[M, 4])
+    Args:
+        box1: 形状为 ``[N, 4]`` 的检测框张量。
+        box2: 形状为 ``[M, 4]`` 的检测框张量。
+        over_second: 为 ``True`` 时返回 ``(IoU, inter / area2)`` 的均值，
+            常用于判断 box1 是否大致包含 box2。
+
     Returns:
-        iou (Tensor[N, M]): the NxM matrix containing the pairwise
-            IoU values for every element in boxes1 and boxes2
+        形状为 ``[N, M]`` 的矩阵，``[i, j]`` 为 ``box1[i]`` 与 ``box2[j]`` 的 IoU。
     """
 
     def box_area(box):

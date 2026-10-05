@@ -2,7 +2,8 @@ import pandas as pd
 import torch
 import tqdm
 from eval_tools import time_sync
-from mivolo.model.create_timm_model import create_model
+
+from funmodel.mivolo.model.create_timm_model import create_model
 
 if __name__ == "__main__":
 

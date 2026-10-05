@@ -7,9 +7,16 @@ import cv2
 import pandas as pd
 import torch
 import tqdm
-from mivolo.data.data_reader import PictureInfo, get_all_files
-from mivolo.modeling.yolo_detector import Detector, PersonAndFaceResult
-from preparation_utils import assign_persons, associate_persons, get_additional_bboxes, get_main_face, save_annotations
+from preparation_utils import (
+    assign_persons,
+    associate_persons,
+    get_additional_bboxes,
+    get_main_face,
+    save_annotations,
+)
+
+from funmodel.mivolo.data.data_reader import PictureInfo, get_all_files
+from funmodel.mivolo.model.yolo_detector import Detector, PersonAndFaceResult
 
 
 def read_fairface_annotations(annotations_files):

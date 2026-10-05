@@ -2,8 +2,9 @@ import argparse
 from typing import Dict, List
 
 import cv2
-from mivolo.data.data_reader import PictureInfo, read_csv_annotation_file
 from ultralytics.yolo.utils.plotting import Annotator, colors
+
+from funmodel.mivolo.data.data_reader import PictureInfo, read_csv_annotation_file
 
 
 def get_parser():

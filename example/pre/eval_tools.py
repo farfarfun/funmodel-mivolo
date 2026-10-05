@@ -4,8 +4,9 @@ import time
 from collections import OrderedDict, defaultdict
 
 import torch
-from mivolo.data.misc import cumulative_error, cumulative_score
 from timm.utils import AverageMeter, accuracy
+
+from funmodel.mivolo.data.misc import cumulative_error, cumulative_score
 
 
 def time_sync():

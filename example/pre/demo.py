@@ -5,9 +5,10 @@ import os
 import cv2
 import torch
 import yt_dlp
-from mivolo.data.data_reader import InputType, get_all_files, get_input_type
-from mivolo.predictor import Predictor
 from timm.utils import setup_default_logging
+
+from funmodel.mivolo.data.data_reader import InputType, get_all_files, get_input_type
+from funmodel.mivolo.predictor import Predictor
 
 _logger = logging.getLogger("inference")
 

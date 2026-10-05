@@ -1,5 +1,5 @@
 import torch
-from mivolo.model.mi_volo import MiVOLO
+from funmodel.mivolo.model.mi_volo import MiVOLO
 
 from .age_gender_dataset import AgeGenderDataset
 from .age_gender_loader import create_loader
@@ -25,6 +25,20 @@ def build(
     workers: int,
     batch_size: int,
 ) -> tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
+    """按数据集名称构建训练/评估用的 ``Dataset`` 与 ``DataLoader``。
+
+    Args:
+        name: 数据集名称，需是 ``DATASET_CLASS_MAP`` 中已注册的 key。
+        images_path: 图片根目录。
+        annotations_path: 标注文件路径。
+        split: 数据划分，如 ``"train"``/``"val"``/``"test"``。
+        mivolo_model: 已加载的 ``MiVOLO`` 模型，用于读取输入尺寸、年龄范围等元信息。
+        workers: ``DataLoader`` 的 worker 进程数。
+        batch_size: 批大小。
+
+    Returns:
+        ``(dataset, dataset_loader)`` 二元组。
+    """
 
     dataset_class = DATASET_CLASS_MAP[name]
 
