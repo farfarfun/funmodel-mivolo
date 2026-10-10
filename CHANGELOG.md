@@ -24,6 +24,8 @@
 - `py.typed` 标记从命名空间共享目录 `funmodel/` 移动到本包实际代码根目录
   `funmodel/mivolo/`，避免与 `funmodel`/`funmodel-dwpose` 等同命名空间插件包产生
   构建产物路径冲突。
+- 删除未适配本包 `MivoloPredictor` API、且没有调用方的上游遗留脚本
+  `example/pre/demo.py`；可运行的图片和摄像头示例保留在 `example/example.py`。
 
 ### 变更
 
