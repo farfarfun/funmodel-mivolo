@@ -154,11 +154,13 @@ class PersonAndFaceCrops:
 class PersonAndFaceResult:
     """封装一帧 YOLO 检测结果，并维护人脸-人体关联与年龄/性别预测值。"""
 
-    def __init__(self, results: Results):
+    def __init__(self, results: Results) -> None:
 
         self.yolo_results = results
         names = set(results.names.values())
-        assert "person" in names and "face" in names
+        missing_categories = {"person", "face"} - names
+        if missing_categories:
+            raise ValueError(f"检测结果缺少必需类别: {', '.join(sorted(missing_categories))}")
 
         # initially no faces and persons are associated to each other
         self.face_to_person_map: dict[int, int | None] = {ind: None for ind in self.get_bboxes_inds("face")}
@@ -202,36 +204,37 @@ class PersonAndFaceResult:
 
     def plot(
         self,
-        conf=False,
-        line_width=None,
-        font_size=None,
-        font="Arial.ttf",
-        pil=False,
-        img=None,
-        labels=True,
-        boxes=True,
-        probs=True,
-        ages=True,
-        genders=True,
-        gender_probs=False,
-    ):
-        """
-        Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
+        conf: bool = False,
+        line_width: int | None = None,
+        font_size: int | None = None,
+        font: str = "Arial.ttf",
+        pil: bool = False,
+        img: np.ndarray | None = None,
+        labels: bool = True,
+        boxes: bool = True,
+        probs: bool = True,
+        ages: bool = True,
+        genders: bool = True,
+        gender_probs: bool = False,
+    ) -> np.ndarray:
+        """在 RGB 图像上绘制检测框、分类概率和年龄性别结果。
+
         Args:
-            conf (bool): Whether to plot the detection confidence score.
-            line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
-            font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
-            font (str): The font to use for the text.
-            pil (bool): Whether to return the image as a PIL Image.
-            img (numpy.ndarray): Plot to another image. if not, plot to original image.
-            labels (bool): Whether to plot the label of bounding boxes.
-            boxes (bool): Whether to plot the bounding boxes.
-            probs (bool): Whether to plot classification probability
-            ages (bool): Whether to plot the age of bounding boxes.
-            genders (bool): Whether to plot the genders of bounding boxes.
-            gender_probs (bool): Whether to plot gender classification probability
+            conf: 是否绘制检测置信度。
+            line_width: 检测框线宽；为空时按图片大小自动缩放。
+            font_size: 字体大小；为空时按图片大小自动缩放。
+            font: 绘制所用字体。
+            pil: 是否按 PIL 格式绘制。
+            img: 目标图片；为空时使用原始图片。
+            labels: 是否绘制类别标签。
+            boxes: 是否绘制检测框。
+            probs: 是否绘制分类概率。
+            ages: 是否绘制年龄。
+            genders: 是否绘制性别。
+            gender_probs: 是否绘制性别概率。
+
         Returns:
-            (numpy.ndarray): A numpy array of the annotated image.
+            已添加标注的图片数组。
         """
 
         # return self.yolo_results.plot()
