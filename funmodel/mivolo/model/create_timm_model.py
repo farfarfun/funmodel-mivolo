@@ -1,7 +1,10 @@
-"""
-Code adapted from timm https://github.com/huggingface/pytorch-image-models
+"""timm 改编实现。
 
-Modifications and additions for mivolo by / Copyright 2023, Irina Tolstykh, Maxim Kuprashevich
+Copyright 2023 Irina Tolstykh, Maxim Kuprashevich
+Copyright 2020 Ross Wightman
+
+Licensed under the Apache License, Version 2.0.  See LICENSE-APACHE-2.0.
+Derived from https://github.com/huggingface/pytorch-image-models and modified for MiVOLO.
 """
 
 import os
@@ -22,8 +25,28 @@ from timm.models._registry import is_model, model_entrypoint
 
 
 def load_checkpoint(
-    model, checkpoint_path, use_ema=True, strict=True, remap=False, filter_keys=None, state_dict_map=None
-):
+    model: Any,
+    checkpoint_path: str,
+    use_ema: bool = True,
+    strict: bool = True,
+    remap: bool = False,
+    filter_keys: list[str] | None = None,
+    state_dict_map: dict[str, str] | None = None,
+) -> Any:
+    """将检查点加载到 timm 模型中。
+
+    Args:
+        model: 待加载权重的模型实例。
+        checkpoint_path: 检查点文件路径。
+        use_ema: 是否优先加载 EMA 权重。
+        strict: 是否严格匹配状态字典键。
+        remap: 是否使用 timm 重映射检查点。
+        filter_keys: 要从状态字典滤除的键名片段。
+        state_dict_map: 状态字典键名替换映射。
+
+    Returns:
+        PyTorch 返回的不兼容键集合；加载 numpy 权重时返回 ``None``。
+    """
     if os.path.splitext(checkpoint_path)[-1].lower() in (".npz", ".npy"):
         # numpy checkpoint, try to load via model specific load_pretrained fn
         if hasattr(model, "load_pretrained"):
@@ -67,12 +90,27 @@ def create_model(
     scriptable: bool | None = None,
     exportable: bool | None = None,
     no_jit: bool | None = None,
-    filter_keys=None,
-    state_dict_map=None,
-    **kwargs,
-):
-    """Create a model
-    Lookup model's entrypoint function and pass relevant args to create a new model.
+    filter_keys: list[str] | None = None,
+    state_dict_map: dict[str, str] | None = None,
+    **kwargs: Any,
+) -> Any:
+    """根据 timm 注册名称创建模型。
+
+    Args:
+        model_name: 模型名称，可包含 Hugging Face Hub 来源。
+        pretrained: 是否加载预训练权重。
+        pretrained_cfg: 预训练配置或配置标签。
+        pretrained_cfg_overlay: 覆盖预训练配置的字段。
+        checkpoint_path: 创建后额外加载的检查点路径。
+        scriptable: 是否启用 TorchScript 兼容配置。
+        exportable: 是否启用导出兼容配置。
+        no_jit: 是否禁用 JIT 层。
+        filter_keys: 加载检查点时要滤除的键名片段。
+        state_dict_map: 加载检查点时的键名替换映射。
+        **kwargs: 传递给模型构造函数的额外参数。
+
+    Returns:
+        创建完成的模型实例。
     """
     # Parameters that aren't supported by all models or are intended to only override model defaults if set
     # should default to None in command line args/cfg. Remove them if they are present and not set so that
@@ -81,7 +119,8 @@ def create_model(
 
     model_source, model_name = parse_model_name(model_name)
     if model_source == "hf-hub":
-        assert not pretrained_cfg, "pretrained_cfg should not be set when sourcing model from Hugging Face Hub."
+        if pretrained_cfg:
+            raise ValueError("从 Hugging Face Hub 创建模型时不能设置 pretrained_cfg")
         # For model names specified in the form `hf-hub:path/architecture_name@revision`,
         # load model weights + pretrained_cfg from Hugging Face hub.
         pretrained_cfg, model_name = load_model_config_from_hf(model_name)

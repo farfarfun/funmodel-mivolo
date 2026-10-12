@@ -5,7 +5,7 @@ description = "Layer MiVOLO for SOTA age and gender recognition"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "LICENSE-APACHE-2.0", "NOTICE"]
 authors = [{ name = "牛哥", email = "farfarfun@qq.com" }]
 dependencies = [
     "funmodel>=0.0.9",
@@ -28,7 +28,7 @@ build-backend = "hatchling.build"
 packages = ["funmodel"]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["funbuild>=1.6.98", "pytest>=8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

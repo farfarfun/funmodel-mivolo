@@ -5,6 +5,7 @@ import pytest
 
 import funmodel.mivolo.predictor as predictor_module
 from funmodel.mivolo.predictor import MivoloPredictor
+from funmodel.mivolo.structures import PersonAndFaceResult
 
 
 class FakeTensor:
@@ -105,3 +106,10 @@ def test_load_reports_failed_download_context(monkeypatch, tmp_path):
     assert "mivolo_imbd.pth.tar" in message
     assert str(tmp_path) in message
     assert "https://models.example/models/mivolo/mivolo_imbd.pth.tar" in message
+
+
+def test_detection_result_requires_person_and_face_categories():
+    results = SimpleNamespace(names={0: "person"})
+
+    with pytest.raises(ValueError, match="face"):
+        PersonAndFaceResult(results)

@@ -1,7 +1,11 @@
-"""
-Code adapted from timm https://github.com/huggingface/pytorch-image-models
+"""MiVOLO 模型实现。
 
-Modifications and additions for mivolo by / Copyright 2023, Irina Tolstykh, Maxim Kuprashevich
+Copyright 2023 Irina Tolstykh, Maxim Kuprashevich
+Copyright 2020 Ross Wightman
+
+Licensed under the Apache License, Version 2.0.  See LICENSE-APACHE-2.0.
+Derived from https://github.com/WildChlamydia/MiVOLO and
+https://github.com/huggingface/pytorch-image-models; modified for this package.
 """
 
 import torch

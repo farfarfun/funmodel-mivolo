@@ -32,7 +32,8 @@ print(results)  # [{"age": ..., "gender": ..., "gender_score": ..., ...}, ...]
 本项目基于 [WildChlamydia/MiVOLO](https://github.com/WildChlamydia/MiVOLO)
 封装，并包含从 [timm](https://github.com/huggingface/pytorch-image-models) 改编的实现。
 MiVOLO 和 timm 均采用 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)；
-相关源文件保留了原始版权、许可证和修改声明。本项目其余代码采用 [MIT](LICENSE) 协议。
+改编源文件保留来源、版权和修改声明，其许可证副本见
+[LICENSE-APACHE-2.0](LICENSE-APACHE-2.0)。本项目其余代码采用 [MIT](LICENSE) 协议。
 
 ---
 

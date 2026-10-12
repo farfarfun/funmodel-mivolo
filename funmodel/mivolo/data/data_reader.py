@@ -14,6 +14,16 @@ VIDEO_EXT: tuple = (".mp4", ".avi", ".mov", ".mkv", ".webm")
 
 @dataclass
 class PictureInfo:
+    """保存单张图片的人脸、人体框及年龄性别标注。
+
+    Args:
+        image_path: 图片文件路径。
+        age: 年龄、年龄区间或 ``"-1"``。
+        gender: 性别标注或 ``"-1"``。
+        bbox: 人脸框，坐标格式为 ``xyxy``。
+        person_bbox: 人体框，坐标格式为 ``xyxy``。
+    """
+
     image_path: str
     age: str | None  # age or age range(start;end format) or "-1"
     gender: str | None  # "M" of "F" or "-1"
@@ -34,10 +44,10 @@ class PictureInfo:
         else:
             return not (self.age == "-1" and self.gender == "-1")
 
-    def clear_person_bbox(self):
+    def clear_person_bbox(self) -> None:
         self.person_bbox = [-1, -1, -1, -1]
 
-    def clear_face_bbox(self):
+    def clear_face_bbox(self) -> None:
         self.bbox = [-1, -1, -1, -1]
 
 
@@ -52,8 +62,17 @@ class AnnotType(Enum):
         return AnnotType.NONE
 
 
-def get_all_files(path: str, extensions: tuple = IMAGES_EXT):
-    files_all = []
+def get_all_files(path: str, extensions: tuple[str, ...] = IMAGES_EXT) -> list[str]:
+    """递归获取目录中具有指定扩展名的文件。
+
+    Args:
+        path: 待遍历的目录路径。
+        extensions: 允许的文件扩展名。
+
+    Returns:
+        所有匹配文件的路径列表。
+    """
+    files_all: list[str] = []
     for root, subFolders, files in os.walk(path):
         for name in files:
             # linux tricks with .directory that still is file
@@ -89,7 +108,19 @@ def get_input_type(input_path: str) -> InputType:
         raise ValueError(f"Unknown input {input_path}")
 
 
-def read_csv_annotation_file(annotation_file: str, images_dir: str, ignore_without_gt=False):
+def read_csv_annotation_file(
+    annotation_file: str, images_dir: str, ignore_without_gt: bool = False
+) -> tuple[dict[str, list[PictureInfo]], AnnotType]:
+    """读取 MiVOLO 格式 CSV 标注并关联存在的图片。
+
+    Args:
+        annotation_file: CSV 标注文件路径。
+        images_dir: 图片根目录。
+        ignore_without_gt: 是否忽略缺少年龄或性别真值的记录。
+
+    Returns:
+        按图片路径分组的标注，以及检测到的标注类型。
+    """
     bboxes_per_image: dict[str, list[PictureInfo]] = defaultdict(list)
 
     df = pd.read_csv(annotation_file, sep=",")
@@ -118,8 +149,6 @@ def read_csv_annotation_file(annotation_file: str, images_dir: str, ignore_witho
 
         bbox = list(map(int, [face_x1, face_y1, face_x2, face_y2]))
         pic_info = PictureInfo(img_path, age, gender, bbox, person_bbox)
-        assert isinstance(pic_info.person_bbox, list)
-
         bboxes_per_image[img_path].append(pic_info)
 
     if missing_images > 0:

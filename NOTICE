@@ -1,0 +1,10 @@
+This distribution includes modified source code from the following projects:
+
+* MiVOLO, Copyright 2023 Irina Tolstykh and Maxim Kuprashevich,
+  https://github.com/WildChlamydia/MiVOLO
+* pytorch-image-models (timm), Copyright 2020 Ross Wightman,
+  https://github.com/huggingface/pytorch-image-models
+
+Those files are licensed under Apache License 2.0. A copy of that license is
+provided in LICENSE-APACHE-2.0. The remaining project code is licensed under
+the MIT License; see LICENSE.
